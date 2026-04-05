@@ -1,0 +1,36 @@
+{
+  "name": "@dnasecure/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --ext .ts,.tsx",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "next": "^14.0.0",
+    "zustand": "^4.4.1",
+    "react-dropzone": "^14.2.3",
+    "framer-motion": "^10.16.4",
+    "sonner": "^1.2.0",
+    "recharts": "^2.10.0",
+    "@tanstack/react-table": "^8.10.0",
+    "react-hook-form": "^7.47.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/node": "^20.4.0",
+    "eslint": "^8.48.0",
+    "postcss": "^8.4.28",
+    "autoprefixer": "^10.4.14",
+    "tailwindcss": "^4.2.0",
+    "@tailwindcss/postcss": "^4.2.0"
+  }
+}
