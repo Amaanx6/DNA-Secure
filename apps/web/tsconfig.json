@@ -18,7 +18,8 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@packages/types": ["../../packages/types/index.ts"]
     },
     "plugins": [
       {
