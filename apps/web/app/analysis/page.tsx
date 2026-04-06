@@ -1,112 +1,94 @@
 'use client';
 
-import MetricCard from '@/components/shared/metric-card';
-
-const sampleMetrics = {
-  psnr: 42.84,
-  ssim: 0.9992,
-  npcr: 99.64,
-  uaci: 33.48,
-};
-
 export default function AnalysisPage() {
+  const metrics = [
+    { label: 'PEAK SNR (PSNR)', value: '42.84', unit: 'dB' },
+    { label: 'STRUCTURAL SIM. (SSIM)', value: '0.9992' },
+    { label: 'PIXEL CHANGE RATE (NPCR)', value: '99.64', unit: '%' },
+    { label: 'AVG. INTENSITY (UACI)', value: '33.48', unit: '%' },
+  ];
+
   return (
-    <div className="max-w-[1120px] mx-auto px-8 py-12">
+    <div className="max-w-7xl mx-auto px-8 py-12">
       <div className="mb-12">
-        <h1 className="font-headline text-5xl text-on-surface mb-2">
-          Analysis Dashboard
-        </h1>
-        <p className="text-on-surface-variant">
-          Detailed security metrics and visual analysis of your encrypted image
+        <h1 className="font-headline text-5xl text-on-surface mb-3">Clinical Integrity Analysis</h1>
+        <p className="text-on-surface-variant font-body max-w-2xl">
+          Verification report for Archive ID: DNA-8829-X. Statistical validation of cryptographic diffusion and confusion properties within the nucleotide encoding layer.
         </p>
       </div>
 
-      {/* Metrics Section */}
+      <div className="grid md:grid-cols-4 gap-4 mb-12">
+        {metrics.map((m, i) => (
+          <div key={i} className="bg-white p-6 warm-shadow">
+            <p className="text-xs font-mono text-on-surface-variant uppercase mb-3">{m.label}</p>
+            <div className="flex items-baseline gap-1">
+              <p className="font-headline text-3xl text-on-surface">{m.value}</p>
+              {m.unit && <span className="text-on-surface-variant text-sm">{m.unit}</span>}
+            </div>
+            <div className="flex gap-1 mt-4">
+              {[85, 72, 90, 88, 76].map((v, j) => (
+                <div key={j} className="flex-1 h-6 bg-primary rounded-sm" style={{ opacity: v / 100 }}></div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="mb-12">
-        <h2 className="font-headline text-2xl text-on-surface mb-6">
-          Security Metrics
-        </h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard
-            label="PSNR"
-            value={sampleMetrics.psnr.toFixed(2)}
-            unit="dB"
-            sparkBars={[
-              Math.random() * 100,
-              Math.random() * 100,
-              Math.random() * 100,
-              Math.random() * 100,
-            ]}
-          />
-          <MetricCard
-            label="SSIM"
-            value={sampleMetrics.ssim.toFixed(4)}
-            sparkBars={[
-              Math.random() * 100,
-              Math.random() * 100,
-              Math.random() * 100,
-              Math.random() * 100,
-            ]}
-          />
-          <MetricCard
-            label="NPCR"
-            value={sampleMetrics.npcr.toFixed(2)}
-            unit="%"
-            sparkBars={[
-              Math.random() * 100,
-              Math.random() * 100,
-              Math.random() * 100,
-              Math.random() * 100,
-            ]}
-          />
-          <MetricCard
-            label="UACI"
-            value={sampleMetrics.uaci.toFixed(2)}
-            unit="%"
-            sparkBars={[
-              Math.random() * 100,
-              Math.random() * 100,
-              Math.random() * 100,
-              Math.random() * 100,
-            ]}
-          />
+        <h2 className="font-headline text-2xl text-on-surface mb-6">Pixel Intensity Distribution</h2>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="bg-white p-8">
+            <p className="text-xs font-mono text-on-surface-variant mb-2">Original Source</p>
+            <p className="text-xs text-on-surface-variant mb-6">Entropy: 7.216 bits/px</p>
+            <div className="h-48 flex items-end gap-0.5">
+              {Array(32).fill(0).map((_, i) => (
+                <div key={i} className="flex-1 bg-blue-400" style={{ height: `${30 + Math.sin(i) * 40 + Math.random() * 30}%` }}></div>
+              ))}
+            </div>
+          </div>
+          <div className="bg-white p-8">
+            <p className="text-xs font-mono text-on-surface-variant mb-2">Encrypted Payload</p>
+            <p className="text-xs text-on-surface-variant mb-6">Entropy: 7.998 bits/px</p>
+            <div className="h-48 flex items-end gap-0.5">
+              {Array(32).fill(0).map((_, i) => (
+                <div key={i} className="flex-1 bg-amber-600" style={{ height: `${50 + Math.random() * 50}%` }}></div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Histogram Section */}
-      <div className="mb-12 bg-surface-container-lowest p-8 border border-outline-variant/10">
-        <h2 className="font-headline text-xl text-on-surface mb-4">
-          Pixel Intensity Distribution
-        </h2>
-        <div className="h-32 flex items-end gap-1">
-          {Array.from({ length: 32 }).map((_, idx) => (
-            <div
-              key={idx}
-              className={`flex-1 ${
-                idx < 16 ? 'bg-secondary' : 'bg-primary'
-              }`}
-              style={{
-                height: `${Math.random() * 100}%`,
-              }}
-            />
-          ))}
-        </div>
-        <div className="mt-4 flex justify-between text-xs text-on-surface-variant font-mono">
-          <span>Original (Blue)</span>
-          <span>Encrypted (Amber)</span>
-        </div>
-      </div>
-
-      {/* Heatmap Section */}
-      <div className="bg-surface-container-lowest p-8 border border-outline-variant/10">
-        <h2 className="font-headline text-xl text-on-surface mb-4">
-          Entropy Heatmap
-        </h2>
-        <div className="space-y-4">
-          <div className="h-32 w-full bg-gradient-to-r from-[#F7F5F2] via-[#d8c3b5] to-[#C17B3F]"></div>
-          <div className="flex justify-between text-xs text-on-surface-variant font-mono">
-            <span>Low Entropy</span>
-            <span>High Entropy</span>
+      <div>
+        <h2 className="font-headline text-2xl text-on-surface mb-6">Local Entropy Mapping</h2>
+        <p className="text-on-surface-variant font-body text-sm mb-8 max-w-2xl">
+          This spatial visualization identifies regions of potential vulnerability. A perfectly encrypted DNA sequence exhibits uniform high entropy across the entire spatial domain.
+        </p>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="bg-white p-8">
+            <div className="flex justify-between mb-3 text-xs font-mono text-on-surface-variant">
+              <span>INTENSITY SCALE</span>
+              <span>BITS PER PIXEL</span>
+            </div>
+            <div className="h-8 bg-gradient-to-r from-amber-100 to-amber-900 mb-2"></div>
+            <div className="flex justify-between text-xs font-mono text-on-surface-variant">
+              <span>0.0 (LOW)</span>
+              <span>4.0</span>
+              <span>8.0 (MAX)</span>
+            </div>
+          </div>
+          <div className="bg-black rounded flex items-center justify-center h-64 overflow-hidden">
+            <svg viewBox="0 0 256 256" className="w-48 h-48">
+              <defs>
+                <radialGradient id="entropy">
+                  <stop offset="0%" stopColor="#00FF00" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#001100" stopOpacity="1" />
+                </radialGradient>
+              </defs>
+              <circle cx="128" cy="128" r="100" fill="url(#entropy)" />
+              {Array(20).fill(0).map((_, i) => (
+                <circle key={i} cx="128" cy="128" r={20 + i * 4} fill="none" stroke="#00FF00" strokeWidth="1" opacity="0.2" />
+              ))}
+            </svg>
           </div>
         </div>
       </div>

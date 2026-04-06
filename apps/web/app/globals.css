@@ -50,6 +50,8 @@
   --color-background: #fff8f4;
   --color-surface-container-highest: #e9e1dc;
   --color-primary-fixed-dim: #ffb77e;
+  --color-success: #1a7a4a;
+  --color-on-success: #ffffff;
 
   /* Border radius */
   --radius: 0.125rem;

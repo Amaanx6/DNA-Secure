@@ -1,135 +1,71 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import StepProgress from '@/components/shared/step-progress';
-import PipelineProgress from '@/components/encrypt/pipeline-progress';
-import LiveLog from '@/components/encrypt/live-log';
-import { useStore } from '@/lib/store';
-import { streamEncryptionProgress, uploadAndEncrypt } from '@/lib/api';
-
-type StageName = 'roi_analysis' | 'dna_encoding' | 'xor_operations' | 'chaos_scramble';
-
-interface Stage {
-  name: StageName;
-  label: string;
-  status: 'pending' | 'active' | 'complete';
-}
 
 export default function ProcessingPage() {
   const router = useRouter();
-  const { uploadedFile, config, setEncryptResult } = useStore();
-  const [stages, setStages] = useState<Stage[]>([
-    { name: 'roi_analysis', label: 'Region Analysis', status: 'active' },
-    { name: 'dna_encoding', label: 'DNA Encoding', status: 'pending' },
-    { name: 'xor_operations', label: 'XOR Operations', status: 'pending' },
-    { name: 'chaos_scramble', label: 'Chaos Scramble', status: 'pending' },
-  ]);
-  const [logs, setLogs] = useState<string[]>([]);
-  const [isCancelled, setIsCancelled] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [step, setStep] = useState(0);
 
   useEffect(() => {
-    if (!uploadedFile) {
-      router.push('/encrypt/upload');
-      return;
-    }
-
-    let cancelled = false;
-
-    const performEncryption = async () => {
-      try {
-        // Add initial log
-        setLogs((prev) => [
-          ...prev,
-          '[INIT] Starting encryption pipeline...',
-          `[FILE] Processing: ${uploadedFile.name}`,
-          `[CONFIG] Rule: ${config.rule}, ROI: ${config.roiSensitivity}`,
-          '',
-        ]);
-
-        // Start actual encryption
-        const result = await uploadAndEncrypt(uploadedFile, config);
-
-        if (!cancelled) {
-          // Add completion logs
-          setLogs((prev) => [
-            ...prev,
-            '[ENCODE] DNA encoding complete',
-            '[XOR] XOR operations complete',
-            '[CHAOS] Chaos scrambling complete',
-            '',
-            '[SUCCESS] Encryption pipeline finished',
-          ]);
-
-          // Mark all stages as complete
-          setStages((prev) =>
-            prev.map((s) => ({ ...s, status: 'complete' as const }))
-          );
-
-          // Store result and redirect
-          setEncryptResult(result);
-          setTimeout(() => {
-            router.push('/encrypt/result');
-          }, 1000);
+    const interval = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 100) {
+          setTimeout(() => router.push('/encrypt/result'), 1500);
+          return 100;
         }
-      } catch (error) {
-        if (!cancelled) {
-          const errorMsg =
-            error instanceof Error ? error.message : 'Unknown error';
-          setLogs((prev) => [
-            ...prev,
-            `[ERROR] ${errorMsg}`,
-            '[ABORT] Encryption failed',
-          ]);
-        }
-      }
-    };
+        return p + Math.random() * 25;
+      });
+      setStep((s) => (s < 3 ? s + 1 : 3));
+    }, 800);
+    return () => clearInterval(interval);
+  }, [router]);
 
-    performEncryption();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [uploadedFile, config, router, setEncryptResult]);
-
-  const handleCancel = () => {
-    setIsCancelled(true);
-    router.push('/encrypt/upload');
-  };
+  const stages = [
+    { num: 1, name: 'DNA Encoding', status: step >= 0 },
+    { num: 2, name: 'Chaos Permutation', status: step >= 1 },
+    { num: 3, name: 'AES Encryption', status: step >= 2 },
+    { num: 4, name: 'Signature Generation', status: step >= 3 },
+  ];
 
   return (
-    <div className="max-w-[1120px] mx-auto px-8 py-12">
-      <StepProgress
-        currentStep={3}
-        totalSteps={3}
-        title="Processing"
-        subtitle="Your image is being encrypted with DNA sequences"
-      />
+    <div className="max-w-7xl mx-auto px-8 py-20 h-screen flex flex-col items-center justify-center">
+      <div className="text-center mb-16">
+        <h1 className="font-headline text-5xl text-on-surface mb-2">Archival DNA Encoding</h1>
+        <p className="text-on-surface-variant font-body">Initialize the molecular sequence generation process.</p>
+      </div>
 
-      <div className="mt-12 space-y-8">
-        {/* Pipeline Visualization */}
-        <div className="bg-surface-container-lowest p-8 border border-outline-variant/10">
-          <PipelineProgress stages={stages} />
+      <div className="w-full max-w-md mb-16">
+        <div className="relative h-2 bg-surface-container-high overflow-hidden mb-4">
+          <div
+            className="h-full bg-primary transition-all"
+            style={{ width: `${Math.min(progress, 100)}%` }}
+          ></div>
         </div>
+        <p className="text-center text-sm text-on-surface-variant font-body">
+          Processing... {Math.min(Math.round(progress), 100)}%
+        </p>
+      </div>
 
-        {/* Live Log Terminal */}
-        <div>
-          <h3 className="font-headline text-lg text-on-surface mb-4">
-            Live Processing Log
-          </h3>
-          <LiveLog logs={logs} />
-        </div>
+      <div className="grid grid-cols-4 gap-4 mb-16 w-full">
+        {stages.map((s, i) => (
+          <div key={i} className="text-center">
+            <div className={`h-12 rounded-full flex items-center justify-center mx-auto mb-2 ${s.status ? 'bg-primary text-white' : 'bg-surface-container-high text-on-surface-variant'
+              }`}>
+              {s.status ? '✓' : s.num}
+            </div>
+            <p className="text-xs font-mono text-on-surface-variant uppercase">{s.name}</p>
+          </div>
+        ))}
+      </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-center">
-          <button
-            onClick={handleCancel}
-            disabled={isCancelled}
-            className="px-8 py-3 text-sm font-medium tracking-wide border border-on-surface/20 text-on-surface hover:bg-surface-container-high transition-all disabled:opacity-50"
-          >
-            Cancel
-          </button>
-        </div>
+      <div className="bg-surface-container-lowest p-6 max-w-md font-mono text-xs text-on-surface-variant overflow-auto h-32">
+        <div className="text-secondary mb-2">[DNA_ENCODER] Initializing sequence...</div>
+        <div className="text-success">[DNA_ENCODER] Standard Huffman active</div>
+        <div className="text-primary">[ENTROPY] Chaos map engaged</div>
+        <div className="opacity-50">[AES_ENC] 256-bit key generated</div>
+        <div className="opacity-30">[SIGNATURE] Computing hash...</div>
       </div>
     </div>
   );

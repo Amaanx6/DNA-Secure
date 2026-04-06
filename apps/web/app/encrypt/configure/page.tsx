@@ -2,150 +2,118 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import StepProgress from '@/components/shared/step-progress';
-import RuleSelector from '@/components/encrypt/rule-selector';
 import { useStore } from '@/lib/store';
-import type { DNARule } from '@packages/types';
 
 export default function ConfigurePage() {
   const router = useRouter();
-  const { config, setConfig } = useStore();
-  const [roiSensitivity, setRoiSensitivity] = useState(config.roiSensitivity);
+  const { setConfig } = useStore();
+  const [selectedProtocol, setSelectedProtocol] = useState(1);
 
-  const handleRuleSelect = (rule: DNARule) => {
-    setConfig({ rule });
-  };
+  const protocols = [
+    { id: 1, name: 'Standard Huffman', codes: ['A', 'C', 'G', 'T'] },
+    { id: 2, name: 'Gray Coding', codes: ['G', 'T', 'A', 'C'] },
+    { id: 3, name: 'Rotation-3', codes: ['T', 'A', 'C', 'G'] },
+    { id: 4, name: 'Inverted Parity', codes: ['C', 'G', 'T', 'A'] },
+    { id: 5, name: 'L-System Bio', codes: ['A', 'T', 'C', 'G'] },
+    { id: 6, name: 'Recursive Map', codes: ['G', 'C', 'A', 'T'] },
+    { id: 7, name: 'Chaotic Delta', codes: ['T', 'G', 'C', 'A'] },
+    { id: 8, name: 'Entropy Pivot', codes: ['C', 'A', 'G', 'T'] },
+  ];
 
-  const handleNext = async () => {
-    setConfig({ roiSensitivity });
+  const handleNext = () => {
+    setConfig({ rule: selectedProtocol });
     router.push('/encrypt/processing');
   };
 
   return (
-    <div className="max-w-[1120px] mx-auto px-8 py-12">
-      <StepProgress
-        currentStep={2}
-        totalSteps={3}
-        title="Configure Encryption"
-        subtitle="Select encoding protocol and adjust parameters"
-      />
+    <div className="max-w-7xl mx-auto px-8 py-12">
+      <div className="mb-12">
+        <span className="text-xs font-mono text-on-surface-variant uppercase">Configuration Module</span>
+        <h1 className="font-headline text-5xl text-on-surface mb-2">Encryption Parameters</h1>
+        <p className="text-on-surface-variant font-body">
+          Define the biological encoding synthesis rules. Select a structural mapping protocol to translate binary data into genomic sequences.
+        </p>
+      </div>
 
-      <div className="flex flex-col lg:flex-row gap-12 mt-12">
-        {/* Left Panel - Protocol Selection */}
-        <div className="lg:w-[60%] space-y-8">
-          <div className="flex items-center justify-between border-b border-outline-variant/20 pb-4">
-            <h2 className="font-headline text-2xl text-on-surface">
-              Encoding Protocols
-            </h2>
-            <span className="text-xs font-mono text-on-surface-variant">
-              8 AVAILABLE METHODS
-            </span>
+      <div className="grid md:grid-cols-[1fr_1.2fr] gap-12">
+        <div>
+          <h2 className="font-headline text-2xl text-on-surface mb-4">Encoding Protocols</h2>
+          <span className="text-xs font-mono text-on-surface-variant">8 AVAILABLE METHODS</span>
+
+          <div className="grid grid-cols-2 gap-4 mt-6">
+            {protocols.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setSelectedProtocol(p.id)}
+                className={`border p-4 text-left transition ${selectedProtocol === p.id ? 'border-primary bg-surface-container-low' : 'border-outline-variant/30'
+                  }`}
+              >
+                <div className="text-xs font-mono text-primary mb-2">PROTOCOL 0{p.id}</div>
+                <h4 className="font-headline text-sm text-on-surface mb-3">{p.name}</h4>
+                <div className="grid grid-cols-4 gap-1 text-xs">
+                  <div className="border border-outline-variant/30 p-1 text-center">00</div>
+                  <div className="border border-outline-variant/30 p-1 text-center">01</div>
+                  <div className="border border-outline-variant/30 p-1 text-center">10</div>
+                  <div className="border border-outline-variant/30 p-1 text-center">11</div>
+                  {p.codes.map((c, i) => (
+                    <div key={i} className="border border-primary/50 p-1 text-center font-bold text-primary">
+                      {c}
+                    </div>
+                  ))}
+                </div>
+              </button>
+            ))}
           </div>
-
-          <RuleSelector
-            selectedRule={config.rule}
-            onRuleSelect={handleRuleSelect}
-          />
         </div>
 
-        {/* Right Panel - Configuration Summary (Sticky) */}
-        <div className="lg:w-[40%]">
-          <div className="sticky top-32 glass-panel p-8 space-y-10">
-            {/* Title */}
-            <div className="space-y-2">
-              <h2 className="font-headline text-2xl text-on-surface">
-                Configuration Summary
-              </h2>
-              <div className="h-px bg-primary/20 w-12"></div>
-            </div>
-
-            {/* Selected Rule Info */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-on-surface-variant">Selected Rule</span>
-                <span className="font-semibold text-primary">
-                  Protocol {String(config.rule).padStart(2, '0')}
-                </span>
+        <div>
+          <h2 className="font-headline text-2xl text-on-surface mb-6">Configuration Summary</h2>
+          <div className="bg-white p-6 space-y-6">
+            <div>
+              <div className="flex justify-between text-sm mb-3">
+                <span className="text-on-surface-variant font-mono uppercase text-xs">Selected Rule</span>
+                <span className="font-headline text-primary">Huffman v1.0</span>
               </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-on-surface-variant">Compression Ratio</span>
+              <div className="flex justify-between text-sm">
+                <span className="text-on-surface-variant font-mono uppercase text-xs">Compression Ratio</span>
                 <span className="font-mono text-secondary">2.4:1</span>
               </div>
             </div>
 
-            {/* Key Preview */}
-            <div className="space-y-3">
-              <span className="text-[10px] font-mono tracking-widest text-on-surface-variant uppercase">
-                Key Preview
-              </span>
-              <div className="bg-surface-container-highest p-4 font-mono text-xs break-all leading-relaxed text-on-surface/80 border-l-2 border-primary">
-                DNA_SEC_{String(config.rule).padStart(2, '0')}_KEYHASH_...
+            <div className="border-t border-outline-variant/20 pt-6">
+              <div className="text-xs font-mono text-on-surface-variant mb-2 uppercase">Key Preview</div>
+              <div className="bg-surface-container-lowest p-2 font-mono text-xs overflow-auto max-h-16 text-on-surface-variant">
+                DNA_SEC_01_A:00_C:01_G:10_T:11_SIG_483X_VAR92
               </div>
             </div>
 
-            {/* ROI Sensitivity Slider */}
-            <div className="space-y-6">
-              <div className="flex justify-between items-end">
-                <span className="text-sm font-medium text-on-surface">
-                  ROI Sensitivity
-                </span>
-                <span className="text-xs font-mono text-primary">
-                  {roiSensitivity <= 3
-                    ? 'LOW'
-                    : roiSensitivity <= 7
-                      ? 'MEDIUM'
-                      : 'HIGH'}
-                </span>
+            <div className="border-t border-outline-variant/20 pt-6">
+              <div className="flex justify-between mb-3">
+                <span className="text-xs font-mono text-on-surface-variant uppercase">ROI Sensitivity</span>
+                <span className="text-primary font-headline text-sm">ADAPTIVE HIGH</span>
               </div>
-
-              <div className="relative py-2">
-                <div className="h-1 bg-surface-container-highest rounded-full w-full">
-                  <div
-                    className="absolute top-1/2 -translate-y-1/2 h-1 bg-primary rounded-full transition-all"
-                    style={{ width: `${(roiSensitivity / 10) * 100}%` }}
-                  ></div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="10"
-                    value={roiSensitivity}
-                    onChange={(e) => setRoiSensitivity(Number(e.target.value))}
-                    className="absolute top-1/2 -translate-y-1/2 w-full h-1 opacity-0 cursor-pointer"
-                  />
-                  <div
-                    className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-primary border-4 border-white shadow-sm rounded-full pointer-events-none transition-all"
-                    style={{
-                      left: `calc(${(roiSensitivity / 10) * 100}% - 8px)`,
-                    }}
-                  ></div>
-                </div>
-
-                <div className="flex justify-between mt-3 text-[10px] text-on-surface-variant font-mono">
-                  <span>LOW</span>
-                  <span>MED</span>
-                  <span>HIGH</span>
-                </div>
+              <input type="range" min="0" max="100" defaultValue="75" className="w-full accent-primary" />
+              <div className="flex justify-between text-xs text-on-surface-variant mt-2 font-mono">
+                <span>LOW</span>
+                <span>MED</span>
+                <span>HIGH</span>
               </div>
             </div>
 
-            {/* DNA Visualization */}
-            <div className="relative h-24 overflow-hidden bg-on-surface group rounded-sm">
-              <Image
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDic_ZVQtyODeFpeX4RixOi5NQGQWoZCq0EwGe8YfYD_JOx5cuJ3nBeRiAncBYAVU6kZKGLjfcKzOeyryFc4gyGBtAzMStiUFmyyMDXwGpekufuLqieUZ7_9gTZYBchIEufWz2f-Hd_51BZSFvnOvS1MOzB-yXMfBRkPdpc-_XMSe9WREWB7LvxVBa1GNVPel9fe0qpbihm-nE-QKyyYdeFtH2xn3tXlSncbyXqP8753xTy5nD3gvoO43"
-                alt="DNA visualization"
-                fill
-                className="object-cover opacity-40 group-hover:scale-105 transition-transform duration-700"
-              />
+            <div className="bg-black text-white p-4 flex items-center justify-center">
+              <span className="text-sm font-headline">SEQUENCE VALIDATED</span>
             </div>
 
-            {/* Action Button */}
             <button
               onClick={handleNext}
-              className="w-full bg-primary text-on-primary py-3 font-medium text-sm tracking-wide hover:bg-primary-container transition-all"
+              className="w-full bg-primary text-white py-3 font-headline hover:opacity-90 text-sm"
             >
-              Run Encryption
+              Run Encryption 🔒
             </button>
+
+            <p className="text-xs text-on-surface-variant text-center font-body">
+              By proceeding, you acknowledge that the synthesis process is irreversible without the specific decryption key.
+            </p>
           </div>
         </div>
       </div>

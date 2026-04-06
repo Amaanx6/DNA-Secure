@@ -1,127 +1,60 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import StepProgress from '@/components/shared/step-progress';
 import DropZone from '@/components/encrypt/drop-zone';
 
 export default function DecryptUploadPage() {
-  const router = useRouter();
-  const [encryptedFile, setEncryptedFile] = useState<File | null>(null);
-  const [keyFile, setKeyFile] = useState<File | null>(null);
-  const [useKeyString, setUseKeyString] = useState(false);
-  const [keyString, setKeyString] = useState('');
-
-  const handleNext = () => {
-    if (encryptedFile && (keyFile || keyString)) {
-      router.push('/decrypt/result');
-    }
-  };
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [decryptionKey, setDecryptionKey] = useState('');
 
   return (
-    <div className="max-w-[1120px] mx-auto px-8 py-12">
-      <StepProgress
-        currentStep={1}
-        totalSteps={2}
-        title="Upload for Decryption"
-        subtitle="Select encrypted image and decryption key"
-      />
+    <div className="max-w-7xl mx-auto px-8 py-12">
+      <div className="mb-12">
+        <h1 className="font-headline text-5xl text-on-surface mb-2">Decrypt Medical Archive</h1>
+        <p className="text-on-surface-variant font-body">Upload your encrypted file and provide the decryption key to restore the original image.</p>
+      </div>
 
-      <div className="grid md:grid-cols-2 gap-12 mt-12">
-        {/* Encrypted File Upload */}
-        <div className="space-y-4">
-          <h3 className="font-headline text-lg text-on-surface">
-            Encrypted Image
-          </h3>
-          <DropZone onFileSelected={setEncryptedFile} />
-
-          {encryptedFile && (
-            <div className="bg-surface-container-lowest p-4 border border-outline-variant/10">
-              <p className="text-xs font-mono text-on-surface-variant uppercase mb-1">
-                Selected File
-              </p>
-              <p className="text-sm text-on-surface truncate">
-                {encryptedFile.name}
-              </p>
+      <div className="grid md:grid-cols-2 gap-12">
+        <div className="border-2 border-dashed border-on-surface-variant/20 rounded p-12 bg-white flex flex-col items-center justify-center min-h-80">
+          {selectedFile ? (
+            <div className="text-center">
+              <div className="text-5xl mb-3">✓</div>
+              <p className="font-headline text-lg text-on-surface mb-1">{selectedFile.name}</p>
+              <button onClick={() => setSelectedFile(null)} className="text-primary text-sm mt-4">
+                Choose different file
+              </button>
             </div>
+          ) : (
+            <DropZone onFileSelected={setSelectedFile} />
           )}
         </div>
 
-        {/* Key Upload/Paste */}
-        <div className="space-y-4">
-          <h3 className="font-headline text-lg text-on-surface">
-            Decryption Key
-          </h3>
-
-          {/* Toggle */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setUseKeyString(false)}
-              className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                !useKeyString
-                  ? 'bg-primary text-on-primary'
-                  : 'bg-surface-container text-on-surface'
-              }`}
-            >
-              Upload File
-            </button>
-            <button
-              onClick={() => setUseKeyString(true)}
-              className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                useKeyString
-                  ? 'bg-primary text-on-primary'
-                  : 'bg-surface-container text-on-surface'
-              }`}
-            >
-              Paste Key
+        <div className="space-y-6">
+          <div className="bg-white p-6 warm-shadow">
+            <h3 className="font-headline text-lg text-on-surface mb-4">Decryption Key</h3>
+            <textarea
+              value={decryptionKey}
+              onChange={(e) => setDecryptionKey(e.target.value)}
+              placeholder="Paste your encryption key here..."
+              className="w-full h-32 p-3 border border-outline-variant/30 font-mono text-xs"
+            ></textarea>
+            <button className="w-full bg-primary text-white py-3 mt-4 hover:opacity-90">
+              Decrypt File
             </button>
           </div>
 
-          {/* Content */}
-          {!useKeyString ? (
-            <>
-              <DropZone onFileSelected={setKeyFile} />
-              {keyFile && (
-                <div className="bg-surface-container-lowest p-4 border border-outline-variant/10">
-                  <p className="text-xs font-mono text-on-surface-variant uppercase mb-1">
-                    Key File
-                  </p>
-                  <p className="text-sm text-on-surface truncate">
-                    {keyFile.name}
-                  </p>
-                </div>
-              )}
-            </>
-          ) : (
-            <textarea
-              value={keyString}
-              onChange={(e) => setKeyString(e.target.value)}
-              placeholder="Paste your decryption key JSON here..."
-              className="w-full h-32 p-4 bg-surface-container-lowest border border-outline-variant/10 font-mono text-xs text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary"
-            />
-          )}
-
-          {/* Status */}
-          {(keyFile || keyString) && (
-            <div className="bg-tertiary/10 p-4 border border-tertiary/20 flex items-center gap-3">
-              <span className="material-symbols-outlined text-tertiary">
-                check_circle
-              </span>
-              <div className="text-sm text-tertiary">Key loaded successfully</div>
+          <div className="bg-surface-container-high p-6">
+            <div className="flex gap-3">
+              <div className="text-2xl">🔓</div>
+              <div>
+                <h4 className="font-headline text-sm text-on-surface mb-1">Security Note</h4>
+                <p className="text-xs text-on-surface-variant font-body">
+                  Decryption happens locally. Your key is never transmitted.
+                </p>
+              </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
-
-      {/* Action */}
-      <div className="mt-12 flex justify-end">
-        <button
-          onClick={handleNext}
-          disabled={!encryptedFile || (!keyFile && !keyString)}
-          className="bg-primary text-on-primary px-8 py-3 font-medium text-sm tracking-wide hover:bg-primary-container transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Decrypt Image
-        </button>
       </div>
     </div>
   );
