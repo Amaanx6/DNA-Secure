@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 from typing import Tuple, Optional
 import base64
+from scipy.ndimage import uniform_filter
 
 
 class ROIDetector:
@@ -24,9 +25,11 @@ class ROIDetector:
         Returns:
             Tuple of (ROI mask, heatmap)
         """
-        # Convert to grayscale if needed
+        h_full, w_full = image.shape[:2]
+
+        # Convert to grayscale if needed (PIL / route uses RGB order)
         if len(image.shape) == 3:
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         else:
             gray = image
 
@@ -36,16 +39,29 @@ class ROIDetector:
         else:
             gray = gray.astype(np.float32)
 
-        # Compute local entropy
-        entropy_map = ROIDetector._compute_entropy(gray)
+        # Downscale for ROI math: full-res per-pixel Python entropy is unusably slow on large scans
+        max_side = 384
+        if max(h_full, w_full) > max_side:
+            scale = max_side / max(h_full, w_full)
+            nw, nh = max(1, int(w_full * scale)), max(1, int(h_full * scale))
+            gray_work = cv2.resize(gray, (nw, nh), interpolation=cv2.INTER_AREA)
+        else:
+            gray_work = gray
+
+        # Compute local entropy (on working resolution)
+        entropy_map = ROIDetector._compute_entropy(gray_work)
 
         # Compute edges using Sobel
-        sobelx = cv2.Sobel(gray, cv2.CV_32F, 1, 0, ksize=3)
-        sobely = cv2.Sobel(gray, cv2.CV_32F, 0, 1, ksize=3)
+        sobelx = cv2.Sobel(gray_work, cv2.CV_32F, 1, 0, ksize=3)
+        sobely = cv2.Sobel(gray_work, cv2.CV_32F, 0, 1, ksize=3)
         edges = np.sqrt(sobelx**2 + sobely**2)
 
         # Combine entropy and edges
         heatmap = entropy_map + edges * 0.5
+
+        # Upscale heatmap / mask to full resolution for downstream display
+        if heatmap.shape[0] != h_full or heatmap.shape[1] != w_full:
+            heatmap = cv2.resize(heatmap, (w_full, h_full), interpolation=cv2.INTER_LINEAR)
 
         # Normalize heatmap
         heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-6)
@@ -60,32 +76,13 @@ class ROIDetector:
     @staticmethod
     def _compute_entropy(image: np.ndarray, window_size: int = 5) -> np.ndarray:
         """
-        Compute local entropy of image.
-        
-        Args:
-            image: Input image (normalized 0-1)
-            window_size: Size of entropy computation window
-            
-        Returns:
-            Entropy map
+        Fast local texture map (windowed std dev), used like entropy for ROI weighting.
+        Replaces per-pixel Python histogram loops (those timed out on large medical images).
         """
-        h, w = image.shape
-        entropy = np.zeros_like(image)
-
-        # Pad image
-        pad = window_size // 2
-        padded = np.pad(image, pad, mode="edge")
-
-        for i in range(h):
-            for j in range(w):
-                window = padded[i:i+window_size, j:j+window_size]
-                # Histogram-based entropy
-                hist, _ = np.histogram(window, bins=256, range=(0, 1))
-                hist = hist[hist > 0]  # Remove zero bins
-                probs = hist / hist.sum()
-                entropy[i, j] = -np.sum(probs * np.log2(probs + 1e-6))
-
-        return entropy / 8.0  # Normalize
+        mean = uniform_filter(image, size=window_size, mode="nearest")
+        mean_sq = uniform_filter(image * image, size=window_size, mode="nearest")
+        var = np.clip(mean_sq - mean * mean, 0.0, None)
+        return np.sqrt(var + 1e-8)
 
     @staticmethod
     def heatmap_to_image(heatmap: np.ndarray, colormap: int = cv2.COLORMAP_JET) -> np.ndarray:
