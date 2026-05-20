@@ -7,6 +7,12 @@ class ChaosMap:
     """Generate and apply chaotic maps for image encryption."""
 
     @staticmethod
+    def _logistic_x0(key: int) -> float:
+        """Stable (0, 1) seed; avoids ``int % 1.0 -> 0`` in Python."""
+        k = int(abs(key)) % 10007
+        return k / 10007.0 + 1e-9
+
+    @staticmethod
     def logistic_sequence(r: float = 3.99, x0: float = 0.5, length: int = 1000) -> np.ndarray:
         """
         Generate logistic map sequence.
@@ -117,22 +123,15 @@ class ChaosMap:
             return ChaosMap.arnold_cat_map(image, iterations)
 
         elif method == "logistic":
-            # Generate logistic sequence from key
             sequence = ChaosMap.logistic_sequence(
                 r=3.99,
-                x0=key % 1.0,
-                length=image.size
+                x0=ChaosMap._logistic_x0(key),
+                length=image.size,
             )
-
-            # Apply scrambling based on sequence
             scrambled = image.copy().flatten()
             indices = np.argsort(sequence)
             scrambled = scrambled[indices]
-
-            if len(image.shape) == 3:
-                return scrambled.reshape(image.shape)
-            else:
-                return scrambled.reshape(image.shape)
+            return scrambled.reshape(image.shape)
 
         else:
             raise ValueError(f"Unknown method: {method}")
@@ -160,23 +159,16 @@ class ChaosMap:
             return ChaosMap.inverse_arnold_cat_map(image, iterations)
 
         elif method == "logistic":
-            # Reverse scrambling
             sequence = ChaosMap.logistic_sequence(
                 r=3.99,
-                x0=key % 1.0,
-                length=image.size
+                x0=ChaosMap._logistic_x0(key),
+                length=image.size,
             )
-
             scrambled = image.copy().flatten()
-            # Unsort using argsort indices
             indices = np.argsort(sequence)
             unscrambled = np.empty_like(scrambled)
             unscrambled[indices] = scrambled
-
-            if len(image.shape) == 3:
-                return unscrambled.reshape(image.shape)
-            else:
-                return unscrambled.reshape(image.shape)
+            return unscrambled.reshape(image.shape)
 
         else:
             raise ValueError(f"Unknown method: {method}")

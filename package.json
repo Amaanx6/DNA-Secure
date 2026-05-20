@@ -4,7 +4,9 @@
   "private": true,
   "packageManager": "pnpm@10.28.0",
   "scripts": {
-    "dev": "concurrently --names \"WEB,API\" --prefix-colors \"cyan,magenta\" \"pnpm --filter @dnasecure/web dev\" \"python -m uvicorn main:app --reload --app-dir apps/api --port 8000\"",
+    "dev": "concurrently --names \"FE,API\" --prefix-colors \"cyan,magenta\" \"pnpm --filter fe dev\" \"python -m uvicorn main:app --reload --app-dir apps/api --port 8000\"",
+    "dev:web": "concurrently --names \"WEB,API\" --prefix-colors \"cyan,magenta\" \"pnpm --filter @dnasecure/web dev\" \"python -m uvicorn main:app --reload --app-dir apps/api --port 8000\"",
+    "dev:fe": "concurrently --names \"FE,API\" --prefix-colors \"cyan,magenta\" \"cross-env API_INTERNAL_ORIGIN=http://127.0.0.1:4000 pnpm --filter fe dev\" \"python -m uvicorn main:app --reload --app-dir apps/api --port 4000\"",
     "build": "pnpm --filter @dnasecure/web build",
     "start": "pnpm --filter @dnasecure/web start",
     "lint": "pnpm --filter @dnasecure/web lint"
@@ -66,6 +68,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "concurrently": "^9.0.0",
+    "cross-env": "^7.0.3",
     "postcss": "^8.5",
     "tailwindcss": "^4.2.0",
     "tw-animate-css": "1.3.3",
